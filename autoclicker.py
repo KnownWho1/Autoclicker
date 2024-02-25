@@ -19,7 +19,7 @@ Set the desired click rate and use the GUI buttons or the specified
 hotkey to control the autoclicker.
 
 Author: KnownWho
-Version: 1.0
+Version: 1.1
 Last Updated: 25/02/2024
 """
 
