@@ -47,9 +47,10 @@ class AutoclickerApp:
         master.title("Autoclicker")
 
         self.click_rate_minutes = tk.StringVar(value="0")  # Default click rate in minutes
-        self.click_rate_seconds = tk.StringVar(value="0")  # Default click rate in seconds
+        self.click_rate_seconds = tk.StringVar(value="1")  # Default click rate in seconds
         self.click_rate_ms = tk.StringVar(value="500")  # Default click rate in milliseconds
         self.hotkey = "F8"  # Default hotkey
+        self.freeze_pointer = tk.BooleanVar(value=True) # Default Freeze
 
         self.setup_gui()
 
@@ -102,6 +103,10 @@ class AutoclickerApp:
 
         self.hotkey_label = tk.Label(hotkey_frame, text="Hotkey: " + self.hotkey)
         self.hotkey_label.grid(row=0, column=1, padx=5)
+
+        # Frame and checkbox for toggling pointer freeze
+        freeze_pointer_checkbox = tk.Checkbutton(main_frame, text="Freeze Pointer", variable=self.freeze_pointer)
+        freeze_pointer_checkbox.pack(pady=5)
 
         # Frame and buttons for starting/stopping autoclicking.
         action_frame = tk.Frame(main_frame)
@@ -201,6 +206,10 @@ class AutoclickerApp:
         The main loop for autoclicking, which clicks at the interval
           specified by the user until stopped.
         """
+        if self.freeze_pointer.get():
+            # Save the current mouse position
+            original_position = pyautogui.position()
+
         while self.is_autoclicking:
             try:
                 # Calculate the click rate on each iteration to always use the latest values
@@ -210,6 +219,10 @@ class AutoclickerApp:
                 click_rate_ms_total = (minutes * 60 * 1000) + (seconds * 1000) + milliseconds
             except ValueError:
                 click_rate_ms_total = 500  # Default to 500ms if there's an error in calculation
+
+            if self.freeze_pointer.get():
+                # Move the pointer back to its original position before clicking
+                pyautogui.moveTo(original_position)
 
             pyautogui.click()
             time.sleep(click_rate_ms_total / 1000)
