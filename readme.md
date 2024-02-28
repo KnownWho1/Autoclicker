@@ -7,6 +7,7 @@ The Autoclicker Application is a GUI-based tool designed to automate mouse click
 - **GUI for Easy Configuration**: Set your click rate using a simple graphical interface.
 - **Customizable Click Rate**: Define click intervals in minutes, seconds, and milliseconds.
 - **Hotkey Support**: Start or stop the autoclicker with a hotkey of your choosing.
+- **Click Freeze**: Freeze the pointer in 1 location to click, can be toggled on or off in the GUI.
 - **Future Expansion**: I'am committed to adding more features, such as click position settings and click type options.
 
 ## Installation
