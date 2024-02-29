@@ -19,7 +19,7 @@ Set the desired click rate and use the GUI buttons or the specified
 hotkey to control the autoclicker.
 
 Author: KnownWho
-Version: 1.1
+Version: 1.1.1
 Last Updated: 25/02/2024
 """
 
@@ -49,10 +49,12 @@ class AutoclickerApp:
         self.click_rate_minutes = tk.StringVar(value="0")  # Default click rate in minutes
         self.click_rate_seconds = tk.StringVar(value="1")  # Default click rate in seconds
         self.click_rate_ms = tk.StringVar(value="500")  # Default click rate in milliseconds
+        self.click_type = tk.StringVar(value='single') # Default click type.
         self.hotkey = "F8"  # Default hotkey
         self.freeze_pointer = tk.BooleanVar(value=True) # Default Freeze
 
         self.setup_gui()
+        self.create_menu()
 
         self.is_autoclicking = False
         self.autoclick_thread = None
@@ -105,7 +107,8 @@ class AutoclickerApp:
         self.hotkey_label.grid(row=0, column=1, padx=5)
 
         # Frame and checkbox for toggling pointer freeze
-        freeze_pointer_checkbox = tk.Checkbutton(main_frame, text="Freeze Pointer", variable=self.freeze_pointer)
+        freeze_pointer_checkbox = tk.Checkbutton(main_frame, text="Freeze Pointer",
+                                                  variable=self.freeze_pointer)
         freeze_pointer_checkbox.pack(pady=5)
 
         # Frame and buttons for starting/stopping autoclicking.
@@ -118,6 +121,33 @@ class AutoclickerApp:
         self.stop_button = tk.Button(action_frame, text="Stop", command=self.stop_autoclicker)
         self.stop_button.grid(row=0, column=1, padx=5)
         self.stop_button.config(state=tk.DISABLED) # Initially disable the stop button.
+
+    def create_menu(self):
+        """Create the menu bar with settings"""
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='Settings', menu=settings_menu)
+
+        # add Click Type to the settings menu
+        settings_menu.add_command(label='Click Type', command=self.open_click_type_window)
+
+    def open_click_type_window(self):
+        """Open a new window to select the click type (single or double)."""
+        click_type_window = tk.Toplevel(self.master)
+        click_type_window.title("Click Type")
+
+        # Option for single click
+        single_click_radio = tk.Radiobutton(click_type_window, text="Single Click",
+                                             variable=self.click_type, value="single")
+        single_click_radio.pack(anchor=tk.W)
+
+        # Option for double click
+        double_click_radio = tk.Radiobutton(click_type_window, text="Double Click",
+                                             variable=self.click_type, value="double")
+        double_click_radio.pack(anchor=tk.W)
+
 
     def change_hotkey(self):
         """
@@ -221,10 +251,13 @@ class AutoclickerApp:
                 click_rate_ms_total = 500  # Default to 500ms if there's an error in calculation
 
             if self.freeze_pointer.get():
-                # Move the pointer back to its original position before clicking
+                # Move the pointer back to its original positbion before clicking
                 pyautogui.moveTo(original_position)
-
-            pyautogui.click()
+            # Check the click type and perform the click accordingly
+            if self.click_type.get() == "single":
+                pyautogui.click()
+            else:  # Assume double click
+                pyautogui.doubleClick()
             time.sleep(click_rate_ms_total / 1000)
 
 
