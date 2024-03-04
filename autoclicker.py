@@ -19,7 +19,7 @@ Set the desired click rate and use the GUI buttons or the specified
 hotkey to control the autoclicker.
 
 Author: KnownWho
-Version: 1.1.2
+Version: 1.1.3
 Last Updated: 25/02/2024
 """
 
@@ -28,7 +28,7 @@ import threading
 import time
 import pyautogui
 import keyboard
-
+from pynput import mouse
 class AutoclickerApp:
     """
     A GUI application for an autoclicker that allows users to set 
@@ -58,6 +58,10 @@ class AutoclickerApp:
 
         self.is_autoclicking = False
         self.autoclick_thread = None
+
+
+        self.recording = False  # A flag to track whether we are currently recording
+        self.recorded_clicks = []  # A list to store recorded clicks
 
         # Register hotkey for toggling the autoclicker.
         keyboard.add_hotkey(self.hotkey, self.on_hotkey_press)
@@ -130,12 +134,8 @@ class AutoclickerApp:
         settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label='Settings', menu=settings_menu)
 
-        # New Clicking menu with a Recording submenu
-        clicking_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label='Clicking', menu=clicking_menu)
-
-        # Add Recording submenu to the Clicking menu
-        clicking_menu.add_command(label='Recording', command=self.open_recording_window)
+        # Add Recording to the settings menu
+        settings_menu.add_command(label='Recording', command=self.open_recording_window)
 
         # add Click Type to the settings menu
         settings_menu.add_command(label='Click Type', command=self.open_click_type_window)
@@ -171,13 +171,35 @@ class AutoclickerApp:
                                            command=self.stop_recording)
         stop_recording_button.pack(pady=5)
 
+    def on_click(self, x, y, button, pressed):
+        """
+        Callback for mouse click events.
+        Records the position and button type on click.
+        """
+        if self.recording:
+            if pressed:
+                click_type = 'single' if button == mouse.Button.left else 'double'
+                self.recorded_clicks.append((x, y, click_type))
+                print(f"Recorded {click_type} click at {(x, y)}")  # For debugging
+
+
     def start_recording(self):
-        """Placeholder method to start recording click positions."""
-        print("Start recording clicked positions.")
+        """Start recording mouse clicks."""
+        if not self.recording:
+            self.recording = True
+            self.recorded_clicks.clear()  # Clear previous recordings
+            # Start the listener in a separate thread
+            self.listener = mouse.Listener(on_click=self.on_click)
+            self.listener.start()
+            print("Started recording clicks.")
 
     def stop_recording(self):
-        """Placeholder method to stop recording click positions."""
-        print("Stop recording clicked positions.")
+        """Stop recording mouse clicks."""
+        if self.recording:
+            self.recording = False
+            if self.listener.is_alive():
+                self.listener.stop()  # Stop the listener
+            print("Stopped recording clicks. Recorded positions:", self.recorded_clicks)
 
     def change_hotkey(self):
         """
