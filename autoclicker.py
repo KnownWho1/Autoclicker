@@ -19,7 +19,7 @@ Set the desired click rate and use the GUI buttons or the specified
 hotkey to control the autoclicker.
 
 Author: KnownWho
-Version: 1.1.1
+Version: 1.1.2
 Last Updated: 25/02/2024
 """
 
@@ -130,8 +130,16 @@ class AutoclickerApp:
         settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label='Settings', menu=settings_menu)
 
+        # New Clicking menu with a Recording submenu
+        clicking_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='Clicking', menu=clicking_menu)
+
+        # Add Recording submenu to the Clicking menu
+        clicking_menu.add_command(label='Recording', command=self.open_recording_window)
+
         # add Click Type to the settings menu
         settings_menu.add_command(label='Click Type', command=self.open_click_type_window)
+
 
     def open_click_type_window(self):
         """Open a new window to select the click type (single or double)."""
@@ -148,6 +156,28 @@ class AutoclickerApp:
                                              variable=self.click_type, value="double")
         double_click_radio.pack(anchor=tk.W)
 
+
+    def open_recording_window(self):
+        """Open a new window to manage recording click positions."""
+        recording_window = tk.Toplevel(self.master)
+        recording_window.title("Recording")
+
+        # You can add UI elements here to start/stop recording and possibly list recorded positions
+        start_recording_button = tk.Button(recording_window, text="Start Recording",
+                                            command=self.start_recording)
+        start_recording_button.pack(pady=5)
+
+        stop_recording_button = tk.Button(recording_window, text="Stop Recording",
+                                           command=self.stop_recording)
+        stop_recording_button.pack(pady=5)
+
+    def start_recording(self):
+        """Placeholder method to start recording click positions."""
+        print("Start recording clicked positions.")
+
+    def stop_recording(self):
+        """Placeholder method to stop recording click positions."""
+        print("Stop recording clicked positions.")
 
     def change_hotkey(self):
         """
