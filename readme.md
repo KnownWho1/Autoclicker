@@ -1,36 +1,62 @@
-# Autoclicker Application
+# Autoclicker Pro
 
 ## Introduction
-The Autoclicker Application is a GUI-based tool designed to automate mouse clicking at user-defined intervals. Perfect for a wide range of repetitive tasks, this application offers customizable click rates down to the millisecond and allows for easy toggling on or off via a user-specified hotkey. Built with simplicity and efficiency in mind, our Autoclicker is ideal for gaming, data entry, and any scenario requiring consistent mouse clicks.
+Autoclicker Pro is a high-precision, modern Python desktop application designed for automating mouse clicks at customizable rates. Featuring a sleek dark-themed GUI and a high-performance clicking engine, it is ideal for repetitive tasks, gaming, testing, and any scenario requiring consistent, high-frequency mouse interaction.
 
-## Features
-- **GUI for Easy Configuration**: Set your click rate using a simple graphical interface.
-- **Customizable Click Rate**: Define click intervals in minutes, seconds, and milliseconds.
-- **Hotkey Support**: Start or stop the autoclicker with a hotkey of your choosing.
-- **Click Freeze**: Freeze the pointer in 1 location to click, can be toggled on or off in the GUI.
-- **Click Recording**: Record the position and click of the mouse pointer.
-- **Future Expansion**: I'am committed to adding more features, such as click position settings and proper click recording.
+## 🚀 Features
 
-## Installation
-To use the Autoclicker Application, you'll need Python installed on your system. Clone the repository or download the source code, then install the required dependencies listed below.
+- **High-Precision Timing:** Supports fractional millisecond intervals (e.g., `0.002ms`) using a hybrid sleep/busy-wait loop to ensure maximum accuracy.
+- **Modern GUI:** Built with `customtkinter` for a sleek, professional user experience.
+- **Pick Location System:** Easily capture and save specific screen coordinates to use as a fixed clicking point.
+- **Freeze Pointer:** Option to lock the mouse at a recorded location during automated clicking.
+- **Hotkey Support:** Start and stop the autoclicker instantly using a configurable global hotkey (Default: `F8`).
+- **Persistent Settings:** All your preferences (hotkey, click rate, freeze locations) are automatically saved to a local `config.json` file.
+- **Threaded Execution:** The clicking engine runs in a background thread, keeping the `customtkinter` UI responsive at all times.
 
-### Dependencies
-- `tkinter` for the GUI.
-- `threading` for concurrent operations.
-- `pyautogui` for simulating mouse clicks.
-- `keyboard` for hotkey functionality.
-- `pynput` for click recording
+## 🛠 Tech Stack
 
-Run the following command to install the necessary Python packages:
-`pip install pyautogui keyboard pynput`
+- **Python 3.x**
+- **CustomTkinter:** For a modern, themed graphical user interface.
+- **Pynput:** For low-level, high-speed mouse control.
+- **PyAutoGUI:** For high-level mouse interaction (movement and position).
+- **Keyboard:** For global hotkey registration.
 
-## Usage
-After installing the dependencies, launch the application by running the script:
+## 📋 Installation
 
-`python autoclicker.py`
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-repo/Autoclicker.git
+   cd Autoclicker
+   ```
 
-OR
+2. **Install dependencies:**
+   ```bash
+   pip install pyautogui keyboard customtkinter pynput
+   ```
 
-Click on Autoclicker.exe in `\dist`
+3. **Run the application:**
+   ```bash
+   python autoclicker.py
+   ```
 
-Set the desired click rate in the GUI, and use the start/stop buttons or the specified hotkey to control the autoclicker.
+## 📖 Usage
+
+1. Launch `autoclicker.py`.
+2. **Set Interval:** Enter your desired rate in minutes, seconds, and milliseconds (e.g., `0`, `1`, `500`).
+3. **Click Type:** Choose between **Single Click** and **Double Click**.
+4. **Freeze Location (Optional):**
+   - Check the **Freeze Pointer** box.
+   - Click the **Pick Location** button and move your mouse to the desired spot. The app will capture and save those coordinates.
+5. **Start:** Click the **Start** button or press the **Hotkey** (Default: `F8`) to begin.
+6. **Stop:** Click the **Stop** button or press the **Hotkey** again to halt.
+
+## 📂 Project Structure
+
+- `autoclicker.py`: Main entry point.
+- `ui.py`: Modern GUI implementation using `customtkinter`.
+- `click_engine.py`: Core logic for high-precision clicking and timing.
+- `config_manager.py`: Persistence layer for loading/saving configurations.
+- `config.json`: Automatically generated file to store your settings.
+
+## ⚖️ License
+[Specify License, e.g., MIT]

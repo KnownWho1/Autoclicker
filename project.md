@@ -1,23 +1,23 @@
 # Autoclicker
 
-A lightweight, cross-platform Python desktop application designed to automate mouse clicks at a customizable rate. This tool is ideal for repetitive tasks, testing, or any scenario where consistent mouse interaction is required.
+A high-precision, modern Python desktop application for automating mouse clicks. 
 
 ## 🚀 Features
 
-- **Customizable Click Rate:** Set intervals using minutes, seconds, and milliseconds.
-- **Click Types:** Support for both single and double clicks.
-- **Hotkey Toggling:** Start and stop the autoclicker instantly using a configurable hotkey (Default: `F8`).
-- **Pointer Freeze:** Option to lock the mouse cursor at a specific position during automated clicking.
-- **Click Recording:** Record mouse click positions and types to be used for automation (feature in development).
-- **Threaded Execution:** Runs the clicking logic in a background thread to ensure the GUI remains responsive.
+- **High-Precision Timing:** Supports fractional milliseconds (e.g., 0.002ms) using a hybrid sleep/busy-wait loop for maximum accuracy.
+- **Modern GUI:** Built with `customtkinter` for a sleek, dark-themed interface.
+- **Hotkey Support:** Configurable global hotkey for starting/stopping (Default: `F8`).
+- **Pointer Freeze:** Option to lock the mouse at a specific coordinate.
+- **Persistent Settings:** Automatically saves your preferences (hotkey, rate, etc.) to a local config file.
+- **Threaded Execution:** Ensures the UI remains buttery smooth while the clicking engine runs in the background.
 
 ## 🛠 Tech Stack
 
 - **Python 3.x**
-- **Tkinter:** For the graphical user interface.
-- **PyAutoGUI:** For high-level mouse simulation.
-- **Keyboard:** For global hotkey registration.
-- **Pynput:** For low-level mouse event listening (recording).
+- **CustomTkinter:** Modernized Tkinter widgets.
+- **PyAutoGUI:** Mouse simulation.
+- **Keyboard:** Hotkey registration.
+- **Threading:** Concurrent execution.
 
 ## 📋 Installation
 
@@ -29,7 +29,7 @@ A lightweight, cross-platform Python desktop application designed to automate mo
 
 2. **Install dependencies:**
    ```bash
-   pip install pyautogui keyboard pynput
+   pip install pyautogui keyboard customtkinter
    ```
 
 3. **Run the application:**
@@ -37,21 +37,13 @@ A lightweight, cross-platform Python desktop application designed to automate mo
    python autoclicker.py
    ```
 
-## 📖 Usage
-
-1. Launch `autoclicker.py`.
-2. Enter your desired click interval in the **Click Rate** fields.
-3. Choose your **Click Type** (Single or Double) from the Settings menu.
-4. (Optional) Check **Freeze Pointer** if you want the mouse to stay on a specific spot.
-5. Click **Start** or press `F8` to begin.
-6. Click **Stop** or press `F8` again to halt the operation.
-
 ## 📂 Project Structure
 
-- `autoclicker.py`: Main entry point and application logic.
-- `autoclicker.spec`: Configuration for PyInstaller executables.
-- `docs/`: Project documentation.
-- `build/` / `dist/`: Compiled output folders.
+- `autoclicker.py`: Main entry point.
+- `ui.py`: Main GUI implementation.
+- `click_engine.py`: Core clicking logic and timing engine.
+- `config_manager.py`: Configuration loading and saving.
+- `config.json`: Persisted user settings.
 
 ## ⚖️ License
 [Specify License, e.g., MIT]

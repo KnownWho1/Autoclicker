@@ -1,0 +1,10 @@
+{
+    "hotkey": "F8",
+    "click_type": "double",
+    "freeze_pointer": true,
+    "click_rate_ms": 22.0,
+    "freeze_x": 2126,
+    "freeze_y": 1107,
+    "click_rate_min": 0.0,
+    "click_rate_sec": 0.0
+}
