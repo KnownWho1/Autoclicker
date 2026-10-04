@@ -5,13 +5,13 @@
     "click_type": "double",
     "click_button": "left",
     "freeze_pointer": true,
-    "freeze_x": 2517,
-    "freeze_y": 972,
+    "freeze_x": 2836,
+    "freeze_y": 1059,
     "click_rate_min": 0.0,
     "click_rate_sec": 0.0,
-    "click_rate_ms": 1.0,
+    "click_rate_ms": 0.001,
     "jitter_enabled": false,
-    "jitter_range_ms": 10.0,
-    "max_cps": 0,
+    "jitter_range_ms": 5.0,
+    "max_cps": 0.0,
     "max_clicks": 0
 }

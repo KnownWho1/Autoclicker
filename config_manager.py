@@ -28,9 +28,16 @@ def migrate_config(cfg):
         return DEFAULT_CONFIG.copy()
     version = cfg.get("version", 0)
     if version < CONFIG_VERSION:
-        # Simple migration: copy defaults over missing keys
-        # Ensure sane defaults for timing values
-        if cfg.get("click_rate_ms", 0) <= 0:
+        # Simple migration: copy defaults over missing keys.
+        # Only reset timing if the TOTAL interval is non-positive
+        # (ms alone may legitimately be 0 when min/sec are set).
+        try:
+            total = (float(cfg.get("click_rate_min", 0)) * 60 * 1000
+                     + float(cfg.get("click_rate_sec", 0)) * 1000
+                     + float(cfg.get("click_rate_ms", 0)))
+        except (TypeError, ValueError):
+            total = 0
+        if total <= 0:
             cfg["click_rate_ms"] = 500.0
         migrated = DEFAULT_CONFIG.copy()
         migrated.update(cfg)

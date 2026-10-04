@@ -16,16 +16,27 @@ class ClickEngine:
         self.thread = None
         self.mouse_ctrl = mouse.Controller()
         self.click_count = 0
+        # Fired on every start/stop transition: callback(is_running: bool, reason: str).
+        # Reasons: "button", "hotkey", "emergency", "max_clicks".
+        # Called from worker/keyboard threads — UI must marshal to main thread.
+        self.on_state_change = None
+        self.last_stop_reason = "ready"
+        self.last_start_reason = "button"
+        # Surfaced in the UI so a dead global hook is visible, not silent.
+        self.hotkey_registered = False
+        self.hotkey_error = None
 
         self._apply_config()
 
         # Register hotkeys
         try:
             keyboard.add_hotkey(self.hotkey, self.toggle_hotkey)
+            self.hotkey_registered = True
             if self.emergency_stop_hotkey:
                 keyboard.add_hotkey(self.emergency_stop_hotkey, self.emergency_stop)
-        except Exception:
-            pass
+        except Exception as e:
+            self.hotkey_registered = False
+            self.hotkey_error = str(e)
 
     def _apply_config(self):
         c = self.config
@@ -44,49 +55,75 @@ class ClickEngine:
         self.max_cps = float(c.get("max_cps", 0))
         self.max_clicks = int(c.get("max_clicks", 0))
 
+    def _notify_state(self, is_running, reason):
+        cb = self.on_state_change
+        if cb is not None:
+            try:
+                cb(is_running, reason)
+            except Exception:
+                pass
+
     def toggle_hotkey(self):
-        if self.is_running:
-            self.stop()
-        else:
-            self.start()
+        try:
+            if self.is_running:
+                self.stop(reason="hotkey")
+            else:
+                self.start(reason="hotkey")
+        except Exception as e:
+            print(f"Hotkey toggle failed: {e}")
 
     def emergency_stop(self):
-        with self._lock:
-            self._stop_event.set()
-            self.is_running = False
-        self.stop()
+        try:
+            self.stop(reason="emergency")
+        except Exception as e:
+            print(f"Emergency stop failed: {e}")
 
-    def start(self):
+    def start(self, reason="button"):
         with self._lock:
             if self.is_running:
                 return
             self.is_running = True
             self._stop_event.clear()
             self.click_count = 0
-        self.thread = threading.Thread(target=self._run_loop, daemon=True)
-        self.thread.start()
+            self.last_start_reason = reason
+        # Notify BEFORE the worker can possibly auto-stop (max_clicks at
+        # sub-ms intervals), otherwise False can overtake True.
+        self._notify_state(True, reason)
+        try:
+            self.thread = threading.Thread(target=self._run_loop, daemon=True)
+            self.thread.start()
+        except Exception:
+            with self._lock:
+                self.is_running = False
+                self._stop_event.set()
+                self.last_stop_reason = reason
+            self._notify_state(False, reason)
+            raise
 
-    def stop(self):
+    def stop(self, reason="button"):
         with self._lock:
             if not self.is_running:
                 return
             self.is_running = False
             self._stop_event.set()
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
-        self.thread = None
+            self.last_stop_reason = reason
+        thread = self.thread
+        if thread is not None and thread.is_alive():
+            # Never join the worker thread from itself (max_clicks auto-stop).
+            if threading.current_thread() is not thread:
+                thread.join()
+        if threading.current_thread() is not thread:
+            self.thread = None
+        self._notify_state(False, reason)
 
     def _get_interval_seconds(self):
         total_ms = (self.click_rate_min * 60 * 1000) + (self.click_rate_sec * 1000) + self.click_rate_ms
         if total_ms <= 0:
-            total_ms = 50.0  # minimum 50ms to avoid insane speed
+            total_ms = 0.1  # minimum 0.1ms; use max_cps/max_clicks for safety
         if self.jitter_enabled and self.jitter_range_ms > 0:
             jitter = random.uniform(-self.jitter_range_ms, self.jitter_range_ms)
             total_ms = max(0.1, total_ms + jitter)
-        # Enforce min interval of 50ms to avoid insane speed
-        if total_ms < 50.0:
-            total_ms = 50.0
-        # Enforce max CPS
+        # Enforce max CPS (0 = off)
         if self.max_cps > 0:
             min_interval_ms = 1000.0 / self.max_cps
             if total_ms < min_interval_ms:
@@ -107,9 +144,10 @@ class ClickEngine:
             for _ in range(2):
                 self.mouse_ctrl.press(button)
                 self.mouse_ctrl.release(button)
-        else:
-            self.mouse_ctrl.press(button)
-            self.mouse_ctrl.release(button)
+        else:  # triple
+            for _ in range(3):
+                self.mouse_ctrl.press(button)
+                self.mouse_ctrl.release(button)
 
     def _hybrid_wait(self, target_duration):
         start = time.perf_counter()
@@ -118,9 +156,11 @@ class ClickEngine:
             remaining = target_duration - elapsed
             if remaining <= 0 or self._stop_event.is_set():
                 break
-            # Use a single sleep for the majority of the wait
+            # Sleep for the majority, busy-wait the last ~1ms for precision.
+            # Chunked so stop()/hotkey wakes within ~50ms even on huge intervals
+            # (a single long sleep would block the hotkey thread in join()).
             if remaining > 0.0015:
-                time.sleep(remaining)
+                time.sleep(min(remaining - 0.001, 0.05))
             else:
                 # busy wait for sub-ms precision
                 pass
@@ -135,7 +175,6 @@ class ClickEngine:
 
         while self.is_running and not self._stop_event.is_set():
             interval = self._get_interval_seconds()
-            start_time = time.perf_counter()
 
             # Perform click
             self._perform_click()
@@ -143,11 +182,14 @@ class ClickEngine:
 
             # Check max clicks limit
             if self.max_clicks > 0 and self.click_count >= self.max_clicks:
-                self.stop()
+                self.stop(reason="max_clicks")
                 break
 
             # Wait for next interval
             self._hybrid_wait(interval)
+        # Worker exiting on its own (stop event / max_clicks): drop stale ref.
+        if threading.current_thread() is self.thread:
+            self.thread = None
 
     def update_config(self, new_config):
         with self._lock:
