@@ -15,7 +15,7 @@ DEFAULT_CONFIG = {
     "freeze_x": 500,
     "freeze_y": 500,
     "click_rate_min": 0,
-    "click_rate_sec": 0,
+    "click_rate_sec": 1,
     "click_rate_ms": 500.0,
     "jitter_enabled": False,
     "jitter_range_ms": 10.0,
@@ -29,6 +29,9 @@ def migrate_config(cfg):
     version = cfg.get("version", 0)
     if version < CONFIG_VERSION:
         # Simple migration: copy defaults over missing keys
+        # Ensure sane defaults for timing values
+        if cfg.get("click_rate_ms", 0) <= 0:
+            cfg["click_rate_ms"] = 500.0
         migrated = DEFAULT_CONFIG.copy()
         migrated.update(cfg)
         migrated["version"] = CONFIG_VERSION

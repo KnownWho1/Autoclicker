@@ -68,16 +68,24 @@ class ClickEngine:
 
     def stop(self):
         with self._lock:
+            if not self.is_running:
+                return
             self.is_running = False
             self._stop_event.set()
+        if self.thread and self.thread.is_alive():
+            self.thread.join()
+        self.thread = None
 
     def _get_interval_seconds(self):
         total_ms = (self.click_rate_min * 60 * 1000) + (self.click_rate_sec * 1000) + self.click_rate_ms
         if total_ms <= 0:
-            total_ms = 1.0  # minimum 1ms
+            total_ms = 50.0  # minimum 50ms to avoid insane speed
         if self.jitter_enabled and self.jitter_range_ms > 0:
             jitter = random.uniform(-self.jitter_range_ms, self.jitter_range_ms)
             total_ms = max(0.1, total_ms + jitter)
+        # Enforce min interval of 50ms to avoid insane speed
+        if total_ms < 50.0:
+            total_ms = 50.0
         # Enforce max CPS
         if self.max_cps > 0:
             min_interval_ms = 1000.0 / self.max_cps
@@ -105,19 +113,17 @@ class ClickEngine:
 
     def _hybrid_wait(self, target_duration):
         start = time.perf_counter()
-        # Wait for the interval
         while True:
             elapsed = time.perf_counter() - start
             remaining = target_duration - elapsed
-            if remaining <= 0:
+            if remaining <= 0 or self._stop_event.is_set():
                 break
+            # Use a single sleep for the majority of the wait
             if remaining > 0.0015:
-                time.sleep(0.001)
+                time.sleep(remaining)
             else:
                 # busy wait for sub-ms precision
                 pass
-            if self._stop_event.is_set():
-                break
 
     def _run_loop(self):
         # Move pointer once if freeze

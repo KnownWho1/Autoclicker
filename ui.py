@@ -130,26 +130,33 @@ class AutoclickerUI(ctk.CTk):
         self.stats_label.grid(row=0, column=1, padx=10, pady=5, sticky="e")
 
     def pick_location(self):
+        # Inform user to move mouse and wait 3 seconds before capturing
         self.status_label.configure(text="Status: Move mouse to target... (3s)", text_color="yellow")
         self.pick_btn.configure(state="disabled")
+
         def capture():
             try:
+                time.sleep(3)                       # delay before getting position
                 x, y = pyautogui.position()
-                self.freeze_x_entry.delete(0, "end")
-                self.freeze_x_entry.insert(0, str(x))
-                self.freeze_y_entry.delete(0, "end")
-                self.freeze_y_entry.insert(0, str(y))
-                self.config["freeze_x"] = x
-                self.config["freeze_y"] = y
-                save_config(self.config)
-                self.status_label.configure(text=f"Location Picked: {x}, {y}", text_color="green")
+                # Update UI in main thread
+                self.after(0, lambda: [
+                    self.freeze_x_entry.delete(0, "end"),
+                    self.freeze_x_entry.insert(0, str(x)),
+                    self.freeze_y_entry.delete(0, "end"),
+                    self.freeze_y_entry.insert(0, str(y)),
+                    self.config.update({"freeze_x": x, "freeze_y": y}),
+                    save_config(self.config),
+                    self.status_label.configure(text=f"Location Picked: {x}, {y}", text_color="green"),
+                    # Reset status after a short delay
+                    self.after(2000, lambda: self.status_label.configure(text="Status: Ready", text_color="gray"))
+                ])
             except Exception as e:
-                self.status_label.configure(text=f"Error picking location: {e}", text_color="red")
+                self.after(0, lambda: self.status_label.configure(
+                    text=f"Error picking location: {e}", text_color="red"))
             finally:
-                self.pick_btn.configure(state="normal")
-        threading.Thread(target=capture, daemon=True).start()
-        self.after(3000, lambda: self.status_label.configure(text="Status: Ready", text_color="gray") if self.status_label.cget("text").startswith("Status: Move") else None)
+                self.after(0, lambda: self.pick_btn.configure(state="normal"))
 
+        threading.Thread(target=capture, daemon=True).start()
     def start_clicking(self):
         try:
             mins = float(self.min_entry.get() or 0)
@@ -183,6 +190,8 @@ class AutoclickerUI(ctk.CTk):
             # Update hotkey label
             self.hotkey_label.configure(text=f"Hotkey: {self.config.get('hotkey','F8')}  |  Emergency Stop: {self.config.get('emergency_stop_hotkey','F9')}")
 
+            if self.engine.is_running:
+                self.engine.stop()
             self.engine.start()
             self.start_btn.configure(state="disabled")
             self.stop_btn.configure(state="normal")
