@@ -1,10 +1,17 @@
 {
+    "version": 1,
     "hotkey": "F8",
+    "emergency_stop_hotkey": "F9",
     "click_type": "double",
+    "click_button": "left",
     "freeze_pointer": true,
-    "click_rate_ms": 22.0,
-    "freeze_x": 2126,
-    "freeze_y": 1107,
+    "freeze_x": 1061,
+    "freeze_y": 1582,
     "click_rate_min": 0.0,
-    "click_rate_sec": 0.0
+    "click_rate_sec": 0.0,
+    "click_rate_ms": 1.0,
+    "jitter_enabled": false,
+    "jitter_range_ms": 10.0,
+    "max_cps": 0,
+    "max_clicks": 0
 }

@@ -16,6 +16,7 @@ A high-precision, modern Python desktop application for automating mouse clicks.
 - **Python 3.x**
 - **CustomTkinter:** Modernized Tkinter widgets.
 - **PyAutoGUI:** Mouse simulation.
+- **Pynput:** Low-level mouse control.
 - **Keyboard:** Hotkey registration.
 - **Threading:** Concurrent execution.
 
@@ -29,7 +30,7 @@ A high-precision, modern Python desktop application for automating mouse clicks.
 
 2. **Install dependencies:**
    ```bash
-   pip install pyautogui keyboard customtkinter
+   pip install pyautogui keyboard customtkinter pynput
    ```
 
 3. **Run the application:**
